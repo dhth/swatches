@@ -3,6 +3,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
+import utils
 
 const fallback_color = "#ffffff"
 
@@ -15,11 +16,18 @@ pub type Layout {
 
 pub type Msg {
   ColorChanged2(Component, Color)
+  ResetAllButtonClicked
   ResetColor2(String)
   InputSubmitted
   CopyComponentColorButtonClicked(Component)
   CopyComponentColorAttempted(#(Component, Result(Nil, String)))
   ClearCopiedComponentEntry
+  YankComponentColorButtonClicked(Component)
+  PasteComponentColorButtonClicked(Component)
+  ResetYankComponentButtonClicked
+  CopyAllButtonClicked
+  CopyAllAttempted(Result(Nil, String))
+  ResetCopyAllButton
 }
 
 pub type Component {
@@ -45,6 +53,8 @@ pub type Model {
     layout: Layout,
     colors: Colors,
     component_just_copied: option.Option(Component),
+    yanked_component: option.Option(Component),
+    copied_all: Bool,
     debug: Bool,
   )
 }
@@ -149,11 +159,54 @@ pub fn init_model() -> Model {
     layout: Simple,
     colors: default_colors(),
     component_just_copied: option.None,
+    yanked_component: option.None,
+    copied_all: False,
     debug: False,
   )
 }
 
-pub fn encode_model(model: Model) -> String {
-  ["- layout: " <> model.layout |> encode_layout]
+fn encode_colors(colors: Colors) -> String {
+  colors
+  |> dict.to_list
+  |> list.map(fn(tuple) {
+    let #(component, color) = tuple
+    "  - "
+    <> { component |> component_to_string |> utils.right_pad_trim(12, False) }
+    <> ": "
+    <> color
+  })
   |> string.join("\n")
+}
+
+pub fn colors_to_string(colors: Colors) -> String {
+  colors
+  |> dict.to_list
+  |> list.map(fn(tuple) {
+    let #(component, color) = tuple
+    { component |> component_to_string |> utils.right_pad_trim(16, False) }
+    <> " \""
+    <> color
+    <> "\""
+  })
+  |> string.join("\n")
+}
+
+pub fn encode_model(model: Model) -> String {
+  [
+    "- layout: " <> model.layout |> encode_layout,
+    " - colors:\n" <> model.colors |> encode_colors,
+  ]
+  |> string.join("\n")
+}
+
+pub fn get_bg_class(color: Color) -> String {
+  "bg-[" <> color <> "]"
+}
+
+pub fn get_text_class(color: Color) -> String {
+  "text-[" <> color <> "]"
+}
+
+pub fn get_border_class(color: Color) -> String {
+  "border-[" <> color <> "]"
 }

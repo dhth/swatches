@@ -7,9 +7,10 @@ import lustre/element/html
 import lustre/event
 import types.{
   type Color, type Colors, type Component, type Model, type Msg,
-  component_to_string, encode_model, get_color_for_component,
+  component_to_string, encode_model, get_bg_class, get_border_class,
+  get_color_for_component, get_text_class,
 }
-import utils.{get_bg_class, get_border_class, get_text_class, right_pad_trim}
+import utils.{right_pad_trim}
 
 const component_name_max_width = 13
 
@@ -48,7 +49,8 @@ fn controls_section(model: Model) -> element.Element(Msg) {
       html.div([attribute.class("mx-auto w-4/5")], [
         main_heading(),
         controls_heading(),
-        model |> color_controls,
+        model.copied_all |> controls,
+        model |> color_inputs,
       ]),
     ],
   )
@@ -66,9 +68,43 @@ fn controls_heading() -> element.Element(Msg) {
   ])
 }
 
-fn color_controls(model: Model) -> element.Element(Msg) {
+fn controls(copied_all: Bool) -> element.Element(Msg) {
+  let #(copy_all_class, copy_all_text) = case copied_all {
+    False -> #("bg-[#fabd2f]", "copy all")
+    True -> #("bg-[#b8bb26]", "copied!")
+  }
+
   html.div(
-    [attribute.id("controls"), attribute.class("pt-2 lg:columns-3")],
+    [
+      attribute.id("reset-controls"),
+      attribute.class("flex items-center space-x-2 pt-4 text-[#ebdbb2]"),
+    ],
+    [
+      html.button(
+        [
+          attribute.class(
+            "font-bold text-base px-2 py-1 bg-[#d3869b] text-[#282828]",
+          ),
+          event.on_click(types.ResetAllButtonClicked),
+        ],
+        [element.text("reset all")],
+      ),
+      html.button(
+        [
+          attribute.class(
+            "font-bold text-base px-2 py-1 text-[#282828] " <> copy_all_class,
+          ),
+          event.on_click(types.CopyAllButtonClicked),
+        ],
+        [element.text(copy_all_text)],
+      ),
+    ],
+  )
+}
+
+fn color_inputs(model: Model) -> element.Element(Msg) {
+  html.div(
+    [attribute.id("controls"), attribute.class("pt-2 lg:columns-2")],
     model.colors
       |> dict.to_list
       |> list.map(fn(tuple) {
@@ -78,7 +114,7 @@ fn color_controls(model: Model) -> element.Element(Msg) {
           |> option.map(fn(c) { c == component })
           |> option.unwrap(False)
 
-        component_color_details(tuple, was_copied)
+        component_color_details(tuple, was_copied, model.yanked_component)
       }),
   )
 }
@@ -86,14 +122,16 @@ fn color_controls(model: Model) -> element.Element(Msg) {
 fn component_color_details(
   tuple: #(Component, Color),
   was_copied: Bool,
+  yanked_component: option.Option(Component),
 ) -> element.Element(Msg) {
   let #(component, color) = tuple
   let #(copy_button_class, copy_button_text, copy_button_disabled) = case
     was_copied
   {
     False -> #("bg-[#fabd2f]", "copy", False)
-    True -> #("bg-[#b8bb26]", "done", True)
+    True -> #("bg-[#b8bb26]", "copied", True)
   }
+
   html.div(
     [attribute.class("flex items-center space-x-2 pt-2 text-[#ebdbb2]")],
     [
@@ -101,7 +139,7 @@ fn component_color_details(
         element.text(
           component
           |> component_to_string
-          |> right_pad_trim(component_name_max_width),
+          |> right_pad_trim(component_name_max_width, True),
         ),
       ]),
       html.input([
@@ -114,7 +152,9 @@ fn component_color_details(
       ]),
       html.button(
         [
-          attribute.class("font-semibold px-2 py-1 bg-[#d3869b] text-[#282828]"),
+          attribute.class(
+            "font-semibold text-xs px-2 py-1 bg-[#d3869b] text-[#282828]",
+          ),
           event.on_click(types.ResetColor2(component |> component_to_string)),
         ],
         [element.text("reset")],
@@ -122,7 +162,7 @@ fn component_color_details(
       html.button(
         [
           attribute.class(
-            "font-semibold px-2 py-1 text-[#282828] transition duration-150 ease-linear "
+            "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear "
             <> copy_button_class,
           ),
           attribute.disabled(copy_button_disabled),
@@ -130,6 +170,43 @@ fn component_color_details(
         ],
         [element.text(copy_button_text)],
       ),
+      case yanked_component {
+        option.None ->
+          html.button(
+            [
+              attribute.class(
+                "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#83a598]",
+              ),
+              event.on_click(types.YankComponentColorButtonClicked(component)),
+            ],
+            [element.text("yank")],
+          )
+        option.Some(yanked_component) ->
+          case yanked_component == component {
+            False ->
+              html.button(
+                [
+                  attribute.class(
+                    "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#b8bb26]",
+                  ),
+                  event.on_click(types.PasteComponentColorButtonClicked(
+                    component,
+                  )),
+                ],
+                [element.text("paste")],
+              )
+            True ->
+              html.button(
+                [
+                  attribute.class(
+                    "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#fb4934]",
+                  ),
+                  event.on_click(types.ResetYankComponentButtonClicked),
+                ],
+                [element.text("cancel")],
+              )
+          }
+      },
     ],
   )
 }

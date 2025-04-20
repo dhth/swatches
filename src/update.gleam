@@ -1,8 +1,13 @@
-import effects.{clear_copied_component_entry, copy_component_color}
+import effects.{
+  clear_copied_component_entry, copy_component_color, copy_to_clipboard,
+  reset_copy_all_button,
+}
 import gleam/dict
 import gleam/option
 import lustre/effect.{type Effect}
-import types.{type Model, type Msg, Model, default_color, to_component}
+import types.{
+  type Model, type Msg, Model, colors_to_string, default_color, to_component,
+}
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
@@ -45,6 +50,51 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
     types.ClearCopiedComponentEntry -> #(
       Model(..model, component_just_copied: option.None),
+      effect.none(),
+    )
+    types.YankComponentColorButtonClicked(component) -> {
+      #(
+        Model(..model, yanked_component: component |> option.Some),
+        effect.none(),
+      )
+    }
+    types.PasteComponentColorButtonClicked(component) -> {
+      case model.yanked_component {
+        option.None -> #(model, effect.none())
+        option.Some(yanked_component) ->
+          case model.colors |> dict.get(yanked_component) {
+            Error(_) -> #(model, effect.none())
+            Ok(color) -> #(
+              Model(
+                ..model,
+                colors: model.colors
+                  |> dict.insert(component, color),
+              ),
+              effect.none(),
+            )
+          }
+      }
+    }
+
+    types.ResetYankComponentButtonClicked -> #(
+      Model(..model, yanked_component: option.None),
+      effect.none(),
+    )
+    types.ResetAllButtonClicked -> #(
+      Model(..model, colors: types.default_colors()),
+      effect.none(),
+    )
+    types.CopyAllButtonClicked -> #(
+      model,
+      copy_to_clipboard(model.colors |> colors_to_string),
+    )
+    types.CopyAllAttempted(copy_result) ->
+      case copy_result {
+        Error(_) -> #(model, effect.none())
+        Ok(_) -> #(Model(..model, copied_all: True), reset_copy_all_button())
+      }
+    types.ResetCopyAllButton -> #(
+      Model(..model, copied_all: False),
       effect.none(),
     )
   }

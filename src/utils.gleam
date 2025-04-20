@@ -1,22 +1,13 @@
 import gleam/string
-import types.{type Color}
 
-pub fn get_bg_class(color: Color) -> String {
-  "bg-[" <> color <> "]"
-}
-
-pub fn get_text_class(color: Color) -> String {
-  "text-[" <> color <> "]"
-}
-
-pub fn get_border_class(color: Color) -> String {
-  "border-[" <> color <> "]"
-}
-
-pub fn right_pad_trim(value: String, length: Int) -> String {
+pub fn right_pad_trim(value: String, length: Int, dots: Bool) -> String {
+  let char = case dots {
+    False -> " "
+    True -> "."
+  }
   case { value |> string.length } > length {
     False ->
-      [value, string.repeat(".", { length - { value |> string.length } })]
+      [value, string.repeat(char, { length - { value |> string.length } })]
       |> string.join("")
     True ->
       case length > 3 {
