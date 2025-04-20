@@ -41,7 +41,7 @@ fn controls_section(model: Model) -> element.Element(Msg) {
     [
       attribute.id("controls-section"),
       attribute.class(
-        "sticky resize-y border-b-4 border-[#4a4c4d] top-0 bg-[#1d2021] pt-8 pb-10 h-[50vh] overflow-y-scroll",
+        "sticky resize-y border-b-4 border-[#4a4c4d] top-0 bg-[#1d2021] pt-8 pb-10 h-[40vh] overflow-y-scroll",
       ),
     ],
     [
@@ -68,7 +68,7 @@ fn controls_heading() -> element.Element(Msg) {
 
 fn color_controls(model: Model) -> element.Element(Msg) {
   html.div(
-    [attribute.id("controls"), attribute.class("pt-2 columns-2")],
+    [attribute.id("controls"), attribute.class("pt-2 lg:columns-3")],
     model.colors
       |> dict.to_list
       |> list.map(fn(tuple) {
@@ -105,19 +105,16 @@ fn component_color_details(
         ),
       ]),
       html.input([
-        attribute.class("h-8 w-32"),
+        attribute.class("h-8 w-10"),
         attribute.id("color1-input"),
         attribute.type_("color"),
         attribute.placeholder("HEX color"),
         attribute.value(color),
         event.on_input(fn(value) { types.ColorChanged2(component, value) }),
       ]),
-      html.p([attribute.class("font-semibold")], [element.text(color)]),
       html.button(
         [
-          attribute.class(
-            "font-semibold px-4 py-1 ml-4 bg-[#d3869b] text-[#282828]",
-          ),
+          attribute.class("font-semibold px-2 py-1 bg-[#d3869b] text-[#282828]"),
           event.on_click(types.ResetColor2(component |> component_to_string)),
         ],
         [element.text("reset")],
@@ -125,7 +122,7 @@ fn component_color_details(
       html.button(
         [
           attribute.class(
-            "font-semibold px-4 py-1 ml-4 text-[#282828] transition duration-150 ease-linear "
+            "font-semibold px-2 py-1 text-[#282828] transition duration-150 ease-linear "
             <> copy_button_class,
           ),
           attribute.disabled(copy_button_disabled),
