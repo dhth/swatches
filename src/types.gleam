@@ -17,6 +17,9 @@ pub type Msg {
   ColorChanged2(Component, Color)
   ResetColor2(String)
   InputSubmitted
+  CopyComponentColorButtonClicked(Component)
+  CopyComponentColorAttempted(#(Component, Result(Nil, String)))
+  ClearCopiedComponentEntry
 }
 
 pub type Component {
@@ -38,7 +41,12 @@ pub type Colors =
   dict.Dict(Component, Color)
 
 pub type Model {
-  Model(layout: Layout, colors: Colors, debug: Bool)
+  Model(
+    layout: Layout,
+    colors: Colors,
+    component_just_copied: option.Option(Component),
+    debug: Bool,
+  )
 }
 
 fn components() -> List(Component) {
@@ -137,7 +145,12 @@ fn get_color_tuple(component: Component) -> #(Component, Color) {
 }
 
 pub fn init_model() -> Model {
-  Model(layout: Simple, colors: default_colors(), debug: False)
+  Model(
+    layout: Simple,
+    colors: default_colors(),
+    component_just_copied: option.None,
+    debug: False,
+  )
 }
 
 pub fn encode_model(model: Model) -> String {

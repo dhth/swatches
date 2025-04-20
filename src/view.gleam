@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/list
+import gleam/option
 import lustre/attribute
 import lustre/element
 import lustre/element/html
@@ -70,12 +71,29 @@ fn color_controls(model: Model) -> element.Element(Msg) {
     [attribute.id("controls"), attribute.class("pt-2 columns-2")],
     model.colors
       |> dict.to_list
-      |> list.map(color_input),
+      |> list.map(fn(tuple) {
+        let #(component, _) = tuple
+        let was_copied =
+          model.component_just_copied
+          |> option.map(fn(c) { c == component })
+          |> option.unwrap(False)
+
+        component_color_details(tuple, was_copied)
+      }),
   )
 }
 
-fn color_input(tuple: #(Component, Color)) -> element.Element(Msg) {
+fn component_color_details(
+  tuple: #(Component, Color),
+  was_copied: Bool,
+) -> element.Element(Msg) {
   let #(component, color) = tuple
+  let #(copy_button_class, copy_button_text, copy_button_disabled) = case
+    was_copied
+  {
+    False -> #("bg-[#fabd2f]", "copy", False)
+    True -> #("bg-[#b8bb26]", "done", True)
+  }
   html.div(
     [attribute.class("flex items-center space-x-2 pt-2 text-[#ebdbb2]")],
     [
@@ -103,6 +121,17 @@ fn color_input(tuple: #(Component, Color)) -> element.Element(Msg) {
           event.on_click(types.ResetColor2(component |> component_to_string)),
         ],
         [element.text("reset")],
+      ),
+      html.button(
+        [
+          attribute.class(
+            "font-semibold px-4 py-1 ml-4 text-[#282828] transition duration-150 ease-linear "
+            <> copy_button_class,
+          ),
+          attribute.disabled(copy_button_disabled),
+          event.on_click(types.CopyComponentColorButtonClicked(component)),
+        ],
+        [element.text(copy_button_text)],
       ),
     ],
   )

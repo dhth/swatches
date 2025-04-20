@@ -7,6 +7,8 @@ gleam_json = ">= 2.3.0 and < 3.0.0"
 gleam_stdlib = ">= 0.59.0 and < 1.0.0"
 lustre = ">= 4.6.4 and < 5.0.0"
 lustre_http = ">= 0.7.0 and < 1.0.0"
+plinth = ">= 0.5.7 and < 1.0.0"
+gleam_javascript = ">= 0.13.0 and < 1.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
