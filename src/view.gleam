@@ -41,7 +41,7 @@ fn controls_section(model: Model) -> element.Element(Msg) {
     [
       attribute.id("controls-section"),
       attribute.class(
-        "sticky top-0 bg-[#1d2021] pt-4 pb-10 h-[25vh] overflow-y-scroll",
+        "sticky resize-y border-b-4 border-[#4a4c4d] top-0 bg-[#1d2021] pt-8 pb-10 h-[50vh] overflow-y-scroll",
       ),
     ],
     [
