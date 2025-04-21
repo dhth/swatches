@@ -6,7 +6,8 @@ import gleam/dict
 import gleam/option
 import lustre/effect.{type Effect}
 import types.{
-  type Model, type Msg, Model, colors_to_string, default_color, to_component,
+  type Model, type Msg, Model, change_controls_height, colors_to_string,
+  default_color, to_component,
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -95,6 +96,14 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
     types.ResetCopyAllButton -> #(
       Model(..model, copied_all: False),
+      effect.none(),
+    )
+    types.ChangeControlsHeightButtonClicked(change_type) -> #(
+      Model(
+        ..model,
+        controls_height_percent: model.controls_height_percent
+          |> change_controls_height(change_type),
+      ),
       effect.none(),
     )
   }

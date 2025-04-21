@@ -1,4 +1,6 @@
+import gleam/bool
 import gleam/dict
+import gleam/int
 import gleam/list
 import gleam/option
 import lustre/attribute
@@ -38,18 +40,24 @@ fn debug_div(model: Model) -> element.Element(Msg) {
 }
 
 fn controls_section(model: Model) -> element.Element(Msg) {
+  let height_class =
+    "h-["
+    <> { model.controls_height_percent |> types.height_to_int |> int.to_string }
+    <> "vh]"
+
   html.div(
     [
       attribute.id("controls-section"),
       attribute.class(
-        "sticky resize-y border-b-4 border-[#4a4c4d] top-0 bg-[#1d2021] pt-8 pb-10 h-[40vh] overflow-y-scroll",
+        "sticky border-b-4 border-[#4a4c4d] top-0 bg-[#1d2021] pt-8 pb-10 overflow-y-scroll "
+        <> height_class,
       ),
     ],
     [
       html.div([attribute.class("mx-auto w-4/5")], [
         main_heading(),
         controls_heading(),
-        model.copied_all |> controls,
+        controls(model.copied_all, model.controls_height_percent),
         model |> color_inputs,
       ]),
     ],
@@ -68,7 +76,10 @@ fn controls_heading() -> element.Element(Msg) {
   ])
 }
 
-fn controls(copied_all: Bool) -> element.Element(Msg) {
+fn controls(
+  copied_all: Bool,
+  controls_height_percent: types.ControlsHeightPercent,
+) -> element.Element(Msg) {
   let #(copy_all_class, copy_all_text) = case copied_all {
     False -> #("bg-[#fabd2f]", "copy all")
     True -> #("bg-[#b8bb26]", "copied!")
@@ -83,7 +94,7 @@ fn controls(copied_all: Bool) -> element.Element(Msg) {
       html.button(
         [
           attribute.class(
-            "font-bold text-base px-2 py-1 bg-[#d3869b] text-[#282828]",
+            "font-bold text-base px-2 py-1 cursor-pointer bg-[#d3869b] text-[#282828]",
           ),
           event.on_click(types.ResetAllButtonClicked),
         ],
@@ -92,11 +103,44 @@ fn controls(copied_all: Bool) -> element.Element(Msg) {
       html.button(
         [
           attribute.class(
-            "font-bold text-base px-2 py-1 text-[#282828] " <> copy_all_class,
+            "font-bold text-base px-2 py-1 cursor-pointer text-[#282828] "
+            <> copy_all_class,
           ),
           event.on_click(types.CopyAllButtonClicked),
         ],
         [element.text(copy_all_text)],
+      ),
+      html.button(
+        [
+          attribute.class(
+            "font-bold text-base px-2 py-1 cursor-pointer text-[#282828] bg-[#fe8019] disabled:bg-[#d5c4a1]",
+          ),
+          attribute.disabled(
+            controls_height_percent
+            |> types.controls_section_can_shrink
+            |> bool.negate,
+          ),
+          event.on_click(types.ChangeControlsHeightButtonClicked(
+            types.DimensionDecrease,
+          )),
+        ],
+        [element.text("shrink")],
+      ),
+      html.button(
+        [
+          attribute.class(
+            "font-bold text-base px-2 py-1 cursor-pointer text-[#282828] bg-[#fe8019] disabled:bg-[#d5c4a1]",
+          ),
+          attribute.disabled(
+            controls_height_percent
+            |> types.controls_section_can_grow
+            |> bool.negate,
+          ),
+          event.on_click(types.ChangeControlsHeightButtonClicked(
+            types.DimensionIncrease,
+          )),
+        ],
+        [element.text("grow")],
       ),
     ],
   )
@@ -143,7 +187,7 @@ fn component_color_details(
         ),
       ]),
       html.input([
-        attribute.class("h-8 w-10"),
+        attribute.class("h-8 w-10 cursor-pointer"),
         attribute.id("color1-input"),
         attribute.type_("color"),
         attribute.placeholder("HEX color"),
@@ -153,7 +197,7 @@ fn component_color_details(
       html.button(
         [
           attribute.class(
-            "font-semibold text-xs px-2 py-1 bg-[#d3869b] text-[#282828]",
+            "font-semibold text-xs px-2 py-1 cursor-pointer bg-[#d3869b] text-[#282828]",
           ),
           event.on_click(types.ResetColor2(component |> component_to_string)),
         ],
@@ -162,7 +206,7 @@ fn component_color_details(
       html.button(
         [
           attribute.class(
-            "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear "
+            "font-semibold text-xs px-2 py-1 cursor-pointer text-[#282828] transition duration-150 ease-linear "
             <> copy_button_class,
           ),
           attribute.disabled(copy_button_disabled),
@@ -175,7 +219,7 @@ fn component_color_details(
           html.button(
             [
               attribute.class(
-                "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#83a598]",
+                "font-semibold text-xs px-2 py-1 cursor-pointer text-[#282828] transition duration-150 ease-linear bg-[#83a598]",
               ),
               event.on_click(types.YankComponentColorButtonClicked(component)),
             ],
@@ -187,7 +231,7 @@ fn component_color_details(
               html.button(
                 [
                   attribute.class(
-                    "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#b8bb26]",
+                    "font-semibold text-xs px-2 py-1 cursor-pointer text-[#282828] transition duration-150 ease-linear bg-[#b8bb26]",
                   ),
                   event.on_click(types.PasteComponentColorButtonClicked(
                     component,
@@ -199,7 +243,7 @@ fn component_color_details(
               html.button(
                 [
                   attribute.class(
-                    "font-semibold text-xs px-2 py-1 text-[#282828] transition duration-150 ease-linear bg-[#fb4934]",
+                    "font-semibold text-xs px-2 py-1 cursor-pointer text-[#282828] transition duration-150 ease-linear bg-[#fb4934]",
                   ),
                   event.on_click(types.ResetYankComponentButtonClicked),
                 ],
@@ -461,7 +505,11 @@ fn input_section(colors: Colors) -> element.Element(Msg) {
         attribute.type_("text"),
       ]),
       html.button(
-        [attribute.class("w-full p-2 font-bold  " <> button_classes)],
+        [
+          attribute.class(
+            "w-full p-2 font-bold cursor-pointer " <> button_classes,
+          ),
+        ],
         [html.text("Take the Red Pill")],
       ),
     ]),
