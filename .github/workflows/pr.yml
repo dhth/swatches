@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  GLEAM_VERSION: '1.10.1'
+  GLEAM_VERSION: '1.11.1'
 
 jobs:
   changes:
