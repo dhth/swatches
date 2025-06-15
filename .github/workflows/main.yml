@@ -27,8 +27,8 @@ jobs:
             code:
               - "src/**"
               - "priv/**"
-              - *.toml
-              - index.html
+              - "*.toml"
+              - "index.html"
               - ".github/workflows/main.yml"
             workflows:
               - ".github/**/*.yml"
