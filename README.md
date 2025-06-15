@@ -1,5 +1,8 @@
 <p align="center">
-  <h1 align="center">swatches</h1>
+  <h1 align="center">swatches (WIP 🚧)</h1>
+  <p align="center">
+    <a href="https://github.com/dhth/swatches/actions/workflows/build.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/dhth/swatches/build.yml?style=flat-square"></a>
+  </p>
 </p>
 
 `swatches` is a *(work-in-progress)* web-application that lets you experiment
